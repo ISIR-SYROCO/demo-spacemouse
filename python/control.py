@@ -78,7 +78,7 @@ class SimpleController(dsimi.rtt.Task):
 			self.tau_port.write(tau)
 
 def createController(name, time_step, model):
-	task = rtt_interface.PyTaskFactory.CreateTask("kukacontroller")
+	#task = rtt_interface.PyTaskFactory.CreateTask("kukacontroller")
 	controller = SimpleController(name, time_step, model)
 	setProxy(controller)
 	return controller
