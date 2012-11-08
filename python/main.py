@@ -28,7 +28,11 @@ import rtt_interface_corba
 rtt_interface_corba.Init(sys.argv)
 
 TIME_STEP = .01
+print "TIME_STEP ", TIME_STEP
 
+print "BEGIN OF SCRIPT..."
+
+print "CREATE SCENE..."
 import scene1
 
 world = scene1.buildKuka()
@@ -39,18 +43,21 @@ scene1.addCollisionPairs(world)
 clock = dsimi.rtt.Task(ddeployer.load("clock", "dio::Clock", "dio-cpn-clock", "dio/component/"))
 clock.s.setPeriod(TIME_STEP)
 
+print "CREATE GRAPHIC..."
 import graphic
 
 graph = graphic.createTask()
 graphic.init()
 graphic.deserializeWorld(world)
 
+print "CREATE PHYSIC..."
 import physic
 
 phy = physic.createTask()
 physic.init(TIME_STEP)
 physic.deserializeWorld(world)
 
+print "CREATE PORTS..."
 phy.addCreateInputPort("clock_trigger", "double")
 icps = phy.s.Connectors.IConnectorSynchro.new("icps")
 icps.addEvent("clock_trigger")
@@ -60,6 +67,7 @@ graph.getPort("contacts").connectTo(phy.getPort("contacts"))
 
 clock.getPort("ticks").connectTo(phy.getPort("clock_trigger"))
 
+print "CREATE Q READER..."
 import qreader
 
 qreader = qreader.createQReader("kukaqreader", physic.dynmodel)
@@ -68,6 +76,8 @@ qreader.s.start()
 
 rtt_interface_corba.SetServer(qreader._obj)
 
+print "CREATE SIMPLE CONTROLLER..."
+print "Type controller.target_pos = np.matrix([ [X], [Y], [Z] ]) to change target position."
 import control
 
 controller = control.createController("kukacontroller", TIME_STEP, physic.dynmodel)
