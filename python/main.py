@@ -24,6 +24,9 @@ import inspect
 cpath = os.path.dirname(os.path.abspath(inspect.getfile( inspect.currentframe()))) + "/"
 sys.path.append(cpath)
 
+import rtt_interface_corba
+rtt_interface_corba.Init(sys.argv)
+
 TIME_STEP = .01
 
 import scene1
@@ -57,6 +60,14 @@ graph.getPort("contacts").connectTo(phy.getPort("contacts"))
 
 clock.getPort("ticks").connectTo(phy.getPort("clock_trigger"))
 
+import qreader
+
+qreader = qreader.createQReader("kukaqreader", physic.dynmodel)
+
+qreader.s.start()
+
+rtt_interface_corba.SetServer(qreader._obj)
+
 import control
 
 controller = control.createController("kukacontroller", TIME_STEP, physic.dynmodel)
@@ -73,6 +84,7 @@ graphic.graph_scn.MarkersInterface.setMarker6DPosition("target", lgsm.Displaceme
 
 phy.s.setPeriod(TIME_STEP)
 controller.s.setPeriod(TIME_STEP)
+qreader.s.setPeriod(TIME_STEP)
 graph.s.start()
 phy.s.start()
 controller.s.start()
