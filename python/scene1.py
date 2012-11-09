@@ -13,7 +13,7 @@ import math
 
 RESOURCES_PATH = "resources/dae/"
 
-def buildKuka():
+def buildKuka(mechaName, color="Blue"):
 	kukaworld = desc.scene.parseColladaFile(RESOURCES_PATH + "kuka_lwr.dae")
 	root_node = kukaworld.scene.graphical_scene.root_node
 
@@ -22,14 +22,14 @@ def buildKuka():
 		node.position.extend(H.tolist())
 	map(lambda node: setNodePosition(node, lgsm.Displacementd()), root_node.children)
 
-	desc.graphic.applyMaterialSet(root_node, material_set=["xde/YellowOpaqueAvatars", "xde/GreenOpaqueAvatars", "xde/RedOpaqueAvatars"])
+	desc.graphic.applyMaterialSet(root_node, material_set=["xde/"+color+"OpaqueAvatars"])
 
-	# create material
+	#create material
 	#mat = kukaworld.library.materials.add()
 	#mat.name = "purple"
 	#desc.material.fillColorMaterial(mat, [1,0,1,1]) # R,G,B,A
 	kuka_mass = 1.5
-	kuka_damping = 1.0
+	kuka_damping = 10.0 # TODO!!!!!! change to 1.0 in the original script
 
 	H00 = lgsm.Displacementd(0.0, 0., 0.0, 0, 0., 0., 1.)
 	H01 = lgsm.Displacement(lgsm.vectord(0,0.,0)   , lgsm.Rotation3.fromMatrix(np.matrix([[1,0,0],[0,1,0],[0,0,1]])))
@@ -40,15 +40,33 @@ def buildKuka():
 	H56 = lgsm.Displacement(lgsm.vectord(0,0.,0)   , lgsm.Rotation3.fromMatrix(np.matrix([[0,1,0],[-1,0,0],[0,0,1]])))
 	H67 = lgsm.Displacement(lgsm.vectord(0,0.,0.)   , lgsm.Rotation3.fromMatrix(np.matrix([[1,0,0],[0,1,0],[0,0,1]])))
 
+#    kinematic_tree = ("00", kuka_mass, H00, [], [
+#      ("01", kuka_mass, H01, [('hinge', [0,0,0], [0,0,1], kuka_damping, -170*math.pi/180, 170*math.pi/180, -45*math.pi/180)], [
+#       ("02", kuka_mass, H12, [('hinge', [0,0,0], [0,1,0], kuka_damping, -120*math.pi/180, 120*math.pi/180, -2*30*math.pi/180)], [
+#        ("03", kuka_mass, H23, [('hinge', [0,0,0], [0,0,1], kuka_damping, -170*math.pi/180, 170*math.pi/180, 60*math.pi/180)], [
+#         ("04", kuka_mass, H34, [('hinge', [0,0,0], [0,1,0], kuka_damping, -120*math.pi/180, 120*math.pi/180, 45*math.pi/180)], [
+#          ("05", kuka_mass, H45, [('hinge', [0,0,0], [0,0,1], kuka_damping, -170*math.pi/180, 170*math.pi/180, 0*math.pi/180)], [
+#           ("06", kuka_mass/2, H56, [('hinge', [0,0,0], [0,1,0], kuka_damping, -120*math.pi/180, 120*math.pi/180, 90*math.pi/180)], [
+#            ("07", kuka_mass/20, H67, [('hinge', [0,0,0], [0,0,1], kuka_damping, -170*math.pi/180, 170*math.pi/180, 90*math.pi/180)], [
+#            ])
+#           ])
+#          ])
+#         ])
+#        ])
+#       ])
+#      ])
+#     ])
+
+
 	kinematic_tree = ("00", kuka_mass, H00, [], [
-	  ("01", kuka_mass, H01, [('hinge', [0,0,0], [0,0,1], kuka_damping, -170*math.pi/180, 170*math.pi/180, -45*math.pi/180)], [
-	   ("02", kuka_mass, H12, [('hinge', [0,0,0], [0,1,0], kuka_damping, -120*math.pi/180, 120*math.pi/180, -2*30*math.pi/180)], [
-	    ("03", kuka_mass, H23, [('hinge', [0,0,0], [0,0,1], kuka_damping, -170*math.pi/180, 170*math.pi/180, 60*math.pi/180)], [
-	     ("04", kuka_mass, H34, [('hinge', [0,0,0], [0,1,0], kuka_damping, -120*math.pi/180, 120*math.pi/180, 45*math.pi/180)], [
-	      ("05", kuka_mass, H45, [('hinge', [0,0,0], [0,0,1], kuka_damping, -170*math.pi/180, 170*math.pi/180, 0*math.pi/180)], [
-	       ("06", kuka_mass/2, H56, [('hinge', [0,0,0], [0,1,0], kuka_damping, -120*math.pi/180, 120*math.pi/180, 90*math.pi/180)], [
-	        ("07", kuka_mass/20, H67, [('hinge', [0,0,0], [0,0,1], kuka_damping, -170*math.pi/180, 170*math.pi/180, 90*math.pi/180)], [
-			])
+	  ("01", kuka_mass, H01, [('hinge', [0,0,0], [0,0,1], kuka_damping, -370*math.pi/180, 370*math.pi/180, -45*math.pi/180)], [
+	   ("02", kuka_mass, H12, [('hinge', [0,0,0], [0,1,0], kuka_damping, -320*math.pi/180, 320*math.pi/180, -2*30*math.pi/180)], [
+	    ("03", kuka_mass, H23, [('hinge', [0,0,0], [0,0,1], kuka_damping, -370*math.pi/180, 370*math.pi/180, 60*math.pi/180)], [
+	     ("04", kuka_mass, H34, [('hinge', [0,0,0], [0,1,0], kuka_damping, -320*math.pi/180, 320*math.pi/180, 45*math.pi/180)], [
+	      ("05", kuka_mass, H45, [('hinge', [0,0,0], [0,0,1], kuka_damping, -370*math.pi/180, 370*math.pi/180, 0*math.pi/180)], [
+	       ("06", kuka_mass/2, H56, [('hinge', [0,0,0], [0,1,0], kuka_damping, -320*math.pi/180, 320*math.pi/180, 90*math.pi/180)], [
+	        ("07", kuka_mass/20, H67, [('hinge', [0,0,0], [0,0,1], kuka_damping, -370*math.pi/180, 370*math.pi/180, 90*math.pi/180)], [
+	        ])
 	       ])
 	      ])
 	     ])
@@ -60,17 +78,17 @@ def buildKuka():
 	root = desc.robot.addKinematicTree(kukaworld.scene.physical_scene, parent_node=None, tree=kinematic_tree, fixed_base=True, H_init=lgsm.Displacementd())
 
 	def setNodeMaterial(node):
-		node.rigid_body.contact_material = "material.metal"
+	    node.rigid_body.contact_material = "material.metal"
 	desc.core.visitDepthFirst(setNodeMaterial, root)
 
 	kuka_offset = 0.004
 
 	def createKukaComposite(node_name, composite_name):
-		graph_node = desc.core.findInTree(kukaworld.scene.graphical_scene.root_node, node_name)
-		composite = desc.collision.addCompositeMesh(kukaworld.scene.collision_scene, composite_name, offset=kuka_offset)
-		desc.collision.copyFromGraphicalTree(composite.root_node, graph_node)
-		composite.root_node.ClearField("position")
-		composite.root_node.position.extend([0,0,0,1,0,0,0])
+	    graph_node = desc.core.findInTree(kukaworld.scene.graphical_scene.root_node, node_name)
+	    composite = desc.collision.addCompositeMesh(kukaworld.scene.collision_scene, composite_name, offset=kuka_offset)
+	    desc.collision.copyFromGraphicalTree(composite.root_node, graph_node)
+	    composite.root_node.ClearField("position")
+	    composite.root_node.position.extend([0,0,0,1,0,0,0])
 
 	createKukaComposite("kuka_base", "00.comp")
 	createKukaComposite("kuka_1", "01.comp")
@@ -84,9 +102,9 @@ def buildKuka():
 	# association between physics, graphics and collision
 
 	def createKukaBinding(node_name, body_name, comp_name):
-		graph_node = desc.core.findInTree(kukaworld.scene.graphical_scene.root_node, node_name)
-		graph_node.name = body_name # it is suitable to have the same name for both graphics and physics.
-		desc.scene.addBinding(kukaworld, body_name, body_name, "", comp_name)
+	    graph_node = desc.core.findInTree(kukaworld.scene.graphical_scene.root_node, node_name)
+	    graph_node.name = body_name # it is suitable to have the same name for both graphics and physics.
+	    desc.scene.addBinding(kukaworld, body_name, body_name, "", comp_name)
 
 	createKukaBinding("kuka_base", "00", "00.comp")
 	createKukaBinding("kuka_1", "01", "01.comp")
@@ -100,7 +118,7 @@ def buildKuka():
 	kuka_segments = ["00", "01", "02", "03", "04", "05", "06", "07"]
 	kuka_bodies = kuka_segments
 
-	desc.physic.addMechanism(kukaworld.scene.physical_scene, "kuka1", "00", [], kuka_bodies, kuka_segments)
+	desc.physic.addMechanism(kukaworld.scene.physical_scene, mechaName, "00", [], kuka_bodies, kuka_segments)
 	return kukaworld
 
 def addGround(world):
@@ -113,6 +131,18 @@ def addGround(world):
 	desc.simple.physic.addFixedJoint(world, "ground.joint", "ground", lgsm.Displacementd(0,0,-0.4))
 	desc.simple.scene.addBinding(world, phy="ground", graph="ground", graph_ref="", coll="ground.comp")
 
+def addWall(world):
+	env1 = desc.simple.scene.parseColladaFile(RESOURCES_PATH+"env1.dae")
+
+	setNodeScale = lambda node: desc.graphic.setNodeScale(node, [.6, .6, .6])
+	map(setNodeScale, env1.scene.graphical_scene.root_node.children)
+
+	desc.simple.graphic.addGraphicalTree(world, env1, node_name="env1")
+	desc.simple.collision.addCompositeMesh(world, env1, composite_name="env1.comp", offset=0.0, clean_meshes=False, ignore_library_conflicts=True)
+	desc.simple.physic.addRigidBody(world, "env1", mass=1, contact_material="material.concrete")
+	desc.simple.physic.addFixedJoint(world, "env1.joint", "env1", lgsm.Displacementd(-0.3,0.2,-0.3))   #(0,0.4,0)
+	desc.simple.scene.addBinding(world, phy="env1", graph="env1", graph_ref="", coll="env1.comp")
+
 def addContactLaws(world):
 	world.scene.physical_scene.contact_materials.extend(["material.concrete", "material.metal"])
 	cl = world.scene.physical_scene.contact_laws.add()
@@ -121,8 +151,9 @@ def addContactLaws(world):
 	cl.law = cl.COULOMB
 	cl.friction = .4
 
-def addCollisionPairs(world):
+def addCollisionPairs(world, body, mechaName):
 	cp = world.scene.collision_pairs.add()
-	cp.body_i = "ground"
-	cp.mechanism_i = "kuka1"
+	cp.body_i = body
+	cp.mechanism_i = "mechaName"
 	#cp.enabled = True
+
