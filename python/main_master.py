@@ -42,11 +42,14 @@ print "BEGIN OF SCRIPT..."
 
 print "CREATE SCENE..."
 import scene1
+mechaName = "kuka1"
 
-world = scene1.buildKuka()
+world = scene1.buildKuka(mechaName)
 scene1.addContactLaws(world)
 scene1.addGround(world)
-scene1.addCollisionPairs(world)
+scene1.addWall(world)
+scene1.addCollisionPairs(world, "ground", mechaName)
+scene1.addCollisionPairs(world, "env1", mechaName)
 
 clock = dsimi.rtt.Task(ddeployer.load("clock", "dio::Clock", "dio-cpn-clock", "dio/component/"))
 clock.s.setPeriod(TIME_STEP)
@@ -63,7 +66,7 @@ import physic
 
 phy = physic.createTask()
 physic.init(TIME_STEP)
-physic.deserializeWorld(world)
+physic.deserializeWorld(world, mechaName)
 
 print "CREATE PORTS..."
 phy.addCreateInputPort("clock_trigger", "double")
@@ -90,11 +93,11 @@ print "CREATE CONTROLLER..."
 oIT = ddeployer.load("oIT", "Orocos_ISIRController", module="orcisir_Orocos_IsirController-gnulinux", prefix="", libdir="/home/shak/src/orcisir_IsirController/_build/src/")
 TT = dsimi.rtt.Task(oIT)
 
-phy.getPort("kuka1_q").connectTo(TT.getPort("q"))
-phy.getPort("kuka1_qdot").connectTo(TT.getPort("qDot"))
-phy.getPort("kuka1_Hroot").connectTo(TT.getPort("Hroot"))
-phy.getPort("kuka1_Troot").connectTo(TT.getPort("Troot"))
-TT.getPort("tau").connectTo(phy.getPort("kuka1_tau"))
+phy.getPort(mechaName+"_q").connectTo(TT.getPort("q"))
+phy.getPort(mechaName+"_qdot").connectTo(TT.getPort("qDot"))
+phy.getPort(mechaName+"_Hroot").connectTo(TT.getPort("Hroot"))
+phy.getPort(mechaName+"_Troot").connectTo(TT.getPort("Troot"))
+TT.getPort("tau").connectTo(phy.getPort(mechaName+"_tau"))
 
 dm    = physic.dynmodel
 robot = physic.robot
@@ -132,6 +135,9 @@ robot.setJointPositions(np.array([.4]*7).reshape(7,1))
 dm.setJointPositions(np.array([.4]*7).reshape(7,1))
 robot.setJointVelocities(np.array([0.0]*7).reshape(7,1))
 dm.setJointVelocities(np.array([0.0]*7).reshape(7,1))
+
+#Enable contacts
+physic.robot.enableContactWithBody("ground", True)
 
 phy.s.setPeriod(TIME_STEP)
 TT.s.setPeriod(TIME_STEP)

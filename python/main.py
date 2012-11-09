@@ -34,11 +34,12 @@ print "BEGIN OF SCRIPT..."
 
 print "CREATE SCENE..."
 import scene1
+mechaName = "kuka1"
 
-world = scene1.buildKuka()
+world = scene1.buildKuka(mechaName)
 scene1.addContactLaws(world)
 scene1.addGround(world)
-scene1.addCollisionPairs(world)
+scene1.addCollisionPairs(world, "ground", mechaName)
 
 clock = dsimi.rtt.Task(ddeployer.load("clock", "dio::Clock", "dio-cpn-clock", "dio/component/"))
 clock.s.setPeriod(TIME_STEP)
@@ -82,15 +83,17 @@ import control
 
 controller = control.createController("kukacontroller", TIME_STEP, physic.dynmodel)
 
-phy.getPort("kuka1_q").connectTo(controller.getPort("q"))
-phy.getPort("kuka1_qdot").connectTo(controller.getPort("qdot"))
-phy.getPort("kuka1_Troot").connectTo(controller.getPort("t"))
-phy.getPort("kuka1_Hroot").connectTo(controller.getPort("d"))
-controller.getPort("tau").connectTo(phy.getPort("kuka1_tau"))
+phy.getPort(mechaName+"_q").connectTo(controller.getPort("q"))
+phy.getPort(mechaName+"_qdot").connectTo(controller.getPort("qdot"))
+phy.getPort(mechaName+"_Troot").connectTo(controller.getPort("t"))
+phy.getPort(mechaName+"_Hroot").connectTo(controller.getPort("d"))
+controller.getPort("tau").connectTo(phy.getPort(mechaName+"_tau"))
 
 graphic.graph_scn.MarkersInterface.addMarker("target", False)
 graphic.graph_scn.MarkersInterface.setMarker6DPosition("target", lgsm.Displacement(controller.target_pos))
 
+#Enable contacts
+physic.robot.enableContactWithBody("ground", True)
 
 phy.s.setPeriod(TIME_STEP)
 controller.s.setPeriod(TIME_STEP)

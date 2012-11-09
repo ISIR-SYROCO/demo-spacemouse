@@ -27,12 +27,12 @@ def init(_timestep):
 	phy.s.Connectors.OConnectorBodyStateList.new("ocb", "body_state")
 	phy.s.Connectors.OConnectorContactBody.new("occ", "contacts")
 
-def deserializeWorld(world):
+def deserializeWorld(world, mechaName):
 	global phy
 	global robot, dynmodel
 	agents.physic.builder.deserializeWorld(phy, ms, xcd, world)
-	robot = phy.s.GVM.Robot("kuka1")
-	dynmodel = physicshelper.createDynamicModel(world, "kuka1")
+	robot = phy.s.GVM.Robot(mechaName)
+	dynmodel = physicshelper.createDynamicModel(world, mechaName)
 
 	ocb = phy.s.Connectors.OConnectorBodyStateList("ocb")
 
@@ -41,14 +41,14 @@ def deserializeWorld(world):
 			ocb.addBody(str(b.rigid_body))
 
 	occ = phy.s.Connectors.OConnectorContactBody("occ")
-	occ.addInteraction(phy.s.GVM.Robot("kuka1").getSegmentRigidBody2("03"), "ground")
-	occ.addInteraction(phy.s.GVM.Robot("kuka1").getSegmentRigidBody2("04"), "ground")
-	occ.addInteraction(phy.s.GVM.Robot("kuka1").getSegmentRigidBody2("05"), "ground")
-	occ.addInteraction(phy.s.GVM.Robot("kuka1").getSegmentRigidBody2("06"), "ground")
-	occ.addInteraction(phy.s.GVM.Robot("kuka1").getSegmentRigidBody2("07"), "ground")
+	occ.addInteraction(phy.s.GVM.Robot(mechaName).getSegmentRigidBody2("03"), "ground")
+	occ.addInteraction(phy.s.GVM.Robot(mechaName).getSegmentRigidBody2("04"), "ground")
+	occ.addInteraction(phy.s.GVM.Robot(mechaName).getSegmentRigidBody2("05"), "ground")
+	occ.addInteraction(phy.s.GVM.Robot(mechaName).getSegmentRigidBody2("06"), "ground")
+	occ.addInteraction(phy.s.GVM.Robot(mechaName).getSegmentRigidBody2("07"), "ground")
 
-	phy.s.Connectors.IConnectorRobotJointTorque.new("ict", "kuka1_", "kuka1")
-	phy.s.Connectors.OConnectorRobotState.new("ocpos", "kuka1_", "kuka1")
+	phy.s.Connectors.IConnectorRobotJointTorque.new("ict", mechaName+"_", mechaName)
+	phy.s.Connectors.OConnectorRobotState.new("ocpos", mechaName+"_", mechaName)
 
 def startTask():
 	phy.s.start()
