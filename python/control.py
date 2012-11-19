@@ -22,7 +22,8 @@ class SimpleController(dsimi.rtt.Task):
 		self.kd = 20
 
 		# Flag for position control/gravity compensation
-		self.enable_pos_control = True
+		self.enable_pos_control = False
+		self.enable_gravity_comp = True
 
 		# Target position of the end effector
 		self.target_pos = np.matrix([ [0.5], [0.3], [0.3] ])
@@ -44,7 +45,7 @@ class SimpleController(dsimi.rtt.Task):
 		d, dok = self.d_port.read()
 		t, tok = self.t_port.read()
 
-		tau = np.zeros((6,1))
+		tau = lgsm.vector([0] * self.model.nbInternalDofs())
 
 		if qok and qdotok and dok and tok:
 			model = self.model
@@ -70,10 +71,11 @@ class SimpleController(dsimi.rtt.Task):
 			v = T70.getLinearVelocity()
 			fc = self.kp * (xd -x) - self.kd * v
 
-			tau = model.getGravityTerms()
+			if self.enable_gravity_comp:
+				tau += model.getGravityTerms()
 
 			if self.enable_pos_control:
-				tau = tau + J70[3:6,:].transpose() * fc
+				tau = tau + J70.transpose() * fc
 
 			self.tau_port.write(tau)
 
