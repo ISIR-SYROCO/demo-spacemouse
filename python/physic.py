@@ -24,15 +24,26 @@ def init(_timestep):
 	xcd = agents.physic.core.createXCDScene(phy, "xcd", "LMD", lmd_max=0.01)
 	ms.setGeometricalScene(xcd)
 
+	# create material. Used to defined a contact law
+	ms.addContactMaterial("gum") # Define a new material
+	ms.addContactMaterial("metal")
+	ms.setContactLawForMaterialPair("gum", "gum", 1, 1.) # Set the contact parameters for the material pair
+	ms.setContactLawForMaterialPair("gum", "metal", 1, .5)
+	ms.setContactLawForMaterialPair("metal", "metal", 0, .2) # .2 is ignored
+
 	phy.s.Connectors.OConnectorBodyStateList.new("ocb", "body_state")
 	phy.s.Connectors.OConnectorContactBody.new("occ", "contacts")
 
-def deserializeWorld(world, mechaName):
+def createDynamicModel(world, mechaName):
 	global phy
 	global robot, dynmodel
-	agents.physic.builder.deserializeWorld(phy, ms, xcd, world)
 	robot = phy.s.GVM.Robot(mechaName)
 	dynmodel = physicshelper.createDynamicModel(world, mechaName)
+	return dynmodel
+
+def deserializeWorld(world, mechaName):
+	global phy
+	agents.physic.builder.deserializeWorld(phy, ms, xcd, world)
 
 	ocb = phy.s.Connectors.OConnectorBodyStateList("ocb")
 
