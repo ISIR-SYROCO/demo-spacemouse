@@ -7,6 +7,7 @@ import desc.scene
 import desc.material
 import desc.graphic
 import desc.core
+import desc.physic
 import lgsm
 import numpy as np
 import math
@@ -22,14 +23,18 @@ def buildKuka(mechaName, color="Blue"):
 		node.position.extend(H.tolist())
 	map(lambda node: setNodePosition(node, lgsm.Displacementd()), root_node.children)
 
+	mat = kukaworld.library.materials.add()
+	mat.name = "xde/BlueOpaqueAvatars"
+	desc.material.fillColorMaterial(mat, [0.1,0.1,0.2,1.0]) # R,G,B,A
+
 	desc.graphic.applyMaterialSet(root_node, material_set=["xde/"+color+"OpaqueAvatars"])
 
 	#create material
 	#mat = kukaworld.library.materials.add()
 	#mat.name = "purple"
 	#desc.material.fillColorMaterial(mat, [1,0,1,1]) # R,G,B,A
-	kuka_mass = 1.5
-	kuka_damping = 10.0 # TODO!!!!!! change to 1.0 in the original script
+	kuka_mass = 11.5
+	kuka_damping = 100.0 # TODO!!!!!! change to 1.0 in the original script
 
 	H00 = lgsm.Displacementd(0.0, 0., 0.0, 0, 0., 0., 1.)
 	H01 = lgsm.Displacement(lgsm.vectord(0,0.,0)   , lgsm.Rotation3.fromMatrix(np.matrix([[1,0,0],[0,1,0],[0,0,1]])))
@@ -121,9 +126,28 @@ def buildKuka(mechaName, color="Blue"):
 	desc.physic.addMechanism(kukaworld.scene.physical_scene, mechaName, "00", [], kuka_bodies, kuka_segments)
 	return kukaworld
 
+def addObjectFromDae(world, filename, nodename, objectmass, objectmaterial="material.concrete", scale = [1, 1, 1]):
+	object_world = desc.simple.scene.parseColladaFile(RESOURCES_PATH+filename)
+
+	setNodeScale = lambda node: desc.graphic.setNodeScale(node, scale)
+	map(setNodeScale, object_world.scene.graphical_scene.root_node.children)
+
+	desc.simple.graphic.addGraphicalTree(world, object_world, node_name=nodename)
+	desc.simple.collision.addCompositeMesh(world, object_world, composite_name=nodename+".comp", offset=0.0, clean_meshes=False, ignore_library_conflicts=True)
+	desc.simple.physic.addRigidBody(world, nodename, mass=objectmass, contact_material=objectmaterial)
+	desc.simple.physic.addFixedJoint(world, nodename+".joint", nodename, lgsm.Displacementd(-0.3,0.2,-0.3))   #(0,0.4,0)
+	desc.simple.scene.addBinding(world, phy="env1", graph="env1", graph_ref="", coll="env1.comp")
+
 def addGround(world):
 	ground_world = desc.simple.scene.parseColladaFile(RESOURCES_PATH+"ground.dae")
+	root_node = ground_world.scene.graphical_scene.root_node
 	phy_ground_world = desc.simple.scene.parseColladaFile(RESOURCES_PATH+"ground_phy_50mm.dae", append_label_library=".phyground")
+
+	mat = ground_world.library.materials.add()
+	mat.name = "grass"
+	desc.material.fillColorMaterial(mat, [0.01,0.1,0.01,1.0]) # R,G,B,A
+
+	desc.graphic.applyMaterialSet(root_node, material_set=["grass"])
 
 	desc.simple.graphic.addGraphicalTree(world, ground_world, node_name="ground")
 	desc.simple.collision.addCompositeMesh(world, phy_ground_world, composite_name="ground.comp", offset=0.05, clean_meshes=False, ignore_library_conflicts=False)
@@ -157,3 +181,17 @@ def addCollisionPairs(world, body, mechaName):
 	cp.mechanism_i = "mechaName"
 	#cp.enabled = True
 
+def addCube(world):
+	cube_world = desc.simple.scene.parseColladaFile(RESOURCES_PATH+"knob.dae")
+
+	setNodeScale = lambda node: desc.graphic.setNodeScale(node, [.06, .06, .06])
+	map(setNodeScale, cube_world.scene.graphical_scene.root_node.children)
+
+	desc.simple.graphic.addGraphicalTree(world, cube_world, node_name="cube")
+	desc.simple.collision.addCompositeMesh(world, cube_world, composite_name="cube.comp", offset=0.0, clean_meshes=False, ignore_library_conflicts=True)
+	cube = desc.simple.physic.addRigidBody(world, "cube", mass=5, contact_material="material.concrete", weight_enabled=False)
+	free = desc.simple.physic.addFreeJoint(world, "cube.joint", "cube", lgsm.Displacementd(0.001,0.02,1.7,1,0,0,0))   #(0,0.4,0)
+	desc.simple.scene.addBinding(world, phy="cube", graph="cube", graph_ref="", coll="cube.comp")
+
+	#phys_node = desc.physic.findInPhysicalScene(world.scene.physical_scene, "cube")
+	#desc.physic.fillRigidBody( phys_node.rigid_body, mass=5, weight_enabled=False)
