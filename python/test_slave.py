@@ -10,14 +10,6 @@ import math
 import numpy as np
 import lgsm
 
-import numpy
-numpy.set_printoptions(precision=6, suppress=True)
-from numpy import array, zeros, ones, pi
-
-#Utility
-def lToS(L):
-    return " ".join(str(v) for v in L)
-
 # to create custom rtt tasks in python and instantiate them
 
 # a special version of IPython
@@ -47,6 +39,7 @@ import scene1
 mechaName = "kuka2"
 
 world = scene1.buildKuka(mechaName, "Red")
+worldKuka2 = scene1.buildKuka(mechaName)
 scene1.addContactLaws(world)
 scene1.addGround(world)
 scene1.addWall(world)
@@ -68,6 +61,7 @@ import physic
 
 phy = physic.createTask()
 physic.init(TIME_STEP)
+physic.createDynamicModel(worldKuka2, mechaName)
 physic.deserializeWorld(world, mechaName)
 
 print "CREATE PORTS..."
@@ -80,75 +74,36 @@ graph.getPort("contacts").connectTo(phy.getPort("contacts"))
 
 clock.getPort("ticks").connectTo(phy.getPort("clock_trigger"))
 
+print "CREATE SIMPLE CONTROLLER..."
+print "Type controller.target_pos to change target position."
+import controlQ
 
+controllerq = controlQ.createControllerQ("kukacontrollerq", TIME_STEP, physic.dynmodel)
 
-print "CREATE CONTROLLER..."
-#####
-# add orcisir_ISIRController
-oIT = ddeployer.load("oIT", "Orocos_ISIRController", module="orcisir_Orocos_IsirController-gnulinux", prefix="", libdir="/home/shak/src/orcisir_IsirController/_build/src/")
-TT = dsimi.rtt.Task(oIT)
+phy.getPort(mechaName+"_q").connectTo(controllerq.getPort("q"))
+phy.getPort(mechaName+"_qdot").connectTo(controllerq.getPort("qdot"))
+phy.getPort(mechaName+"_Troot").connectTo(controllerq.getPort("t"))
+phy.getPort(mechaName+"_Hroot").connectTo(controllerq.getPort("d"))
+controllerq.getPort("tau").connectTo(phy.getPort(mechaName+"_tau"))
 
-phy.getPort(mechaName+"_q").connectTo(TT.getPort("q"))
-phy.getPort(mechaName+"_qdot").connectTo(TT.getPort("qDot"))
-phy.getPort(mechaName+"_Hroot").connectTo(TT.getPort("Hroot"))
-phy.getPort(mechaName+"_Troot").connectTo(TT.getPort("Troot"))
-TT.getPort("tau").connectTo(phy.getPort(mechaName+"_tau"))
+import dummyGetQ
 
-dm    = physic.dynmodel
-robot = physic.robot
-robot.enableGravity(True)
+dumm = dummyGetQ.createDummyGetQ("dummyget")
 
-TT.s.setDynModelPointerStr(str(dm.this.__long__()), "qld") #"qld" quadprog
-
-
-#################################################
-print "SET TASKS..."
-#TT.s.updateTasks("createTask  myTask  0  1  fullState")
-#TT.s.updateTasks("updateTask  myTask  -Kp 25  -Kd 10  -qDes 0 0 0 0 0 0 0  -dqDes 0 0 0 0 0 0 0  endUpdate")
-
-Kp, Kd = 25, 10
-qDes = 0.*ones(dm.nbDofs())
-dqDes = zeros(dm.nbDofs())
-pqDes = -0.7*ones(2)
-pdqDes = zeros(2)
-posDes = lgsm.Displacement(.38, .110, .30)
-velDes = lgsm.Twist()
-TT.s.updateTasks("createTask  taskFull  4  1  fullState")
-TT.s.updateTasks("updateTask  taskFull  -Kp {0}  -Kd {1}  -qDes {2}  -dqDes {3}  endUpdate".format(Kp, Kd, lToS(qDes), lToS(dqDes)))
-#TT.s.updateTasks("createTask  taskPart  3  1  partialState 2 0 1")
-#TT.s.updateTasks("updateTask  taskPart  -Kp {0}  -Kd {1}  -partqDes {2}  -partdqDes {3}  endUpdate".format(Kp, Kd, lToS(pqDes), lToS(pdqDes)))
-#TT.s.updateTasks("createTask  taskFrameOri  2  1  frame 07 {0} R".format(lToS(lgsm.Displacement())))
-#TT.s.updateTasks("updateTask  taskFrameOri  -Kp {0}  -Kd {1}  -posDes {2}  -velDes {3}  endUpdate".format(Kp, Kd, lToS(posDes), lToS(velDes)))
-
-#TT.s.updateTasks("createTask  taskFrame  1  1  frame 07 {0} XYZ".format(lToS(lgsm.Displacement())))
-#TT.s.updateTasks("updateTask  taskFrame  -Kp {0}  -Kd {1}  -posDes {2}  -velDes {3}  endUpdate".format(Kp, Kd, lToS(posDes), lToS(velDes)))
-
-
-#################################################
-print "SET INIT STATE..."
-robot.setJointPositions(np.array([.4]*7).reshape(7,1))
-dm.setJointPositions(np.array([.4]*7).reshape(7,1))
-robot.setJointVelocities(np.array([0.0]*7).reshape(7,1))
-dm.setJointVelocities(np.array([0.0]*7).reshape(7,1))
+dumm.s.setPeriod(TIME_STEP)
 
 taskQRead = dsimi.rtt.Task(rtt_interface_corba.GetProxy("kukaqreader"))
-import taskMan
-taskm = taskMan.createTaskMan("taskman", TT, physic.dynmodel)
-
-taskQRead = dsimi.rtt.Task(rtt_interface_corba.GetProxy("kukaqreader"))
-taskm.getPort("q").connectTo( taskQRead.getPort("q_out") )
+controllerq.getPort("qdes").connectTo( taskQRead.getPort("q_out") )
+dumm.getPort("q").connectTo( taskQRead.getPort("q_out") )
 
 #Enable contacts
 physic.robot.enableContactWithBody("ground", True)
 physic.robot.enableContactWithBody("env1", True)
 
-taskm.s.setPeriod(TIME_STEP)
-taskm.s.start()
+controllerq.s.start()
 phy.s.setPeriod(TIME_STEP)
 graph.s.start()
 phy.s.start()
-TT.s.setPeriod(TIME_STEP)
-#TT.s.start()
 clock.s.start()
 
 shell()
