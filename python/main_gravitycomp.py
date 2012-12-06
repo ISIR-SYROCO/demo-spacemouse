@@ -27,8 +27,6 @@ sys.path.append(cpath)
 import rtt_interface_corba
 rtt_interface_corba.Init(sys.argv)
 
-import kb
-
 TIME_STEP = .01
 print "TIME_STEP ", TIME_STEP
 
