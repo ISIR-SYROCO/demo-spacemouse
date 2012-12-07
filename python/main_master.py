@@ -36,6 +36,17 @@ import numpy
 numpy.set_printoptions(precision=6, suppress=True)
 from numpy import array, zeros, ones, pi
 
+clibdir_found = False
+for ar in sys.argv:
+	if "clibdir" in ar:
+		clibdir = ar.split("=")
+		controllerlibdir = clibdir[1]
+		clibdir_found = True
+
+if clibdir_found == False:
+	print "please add missing argument: clibdir=/controller/lib/dir/"
+	sys.exit(2)
+
 #Utility
 def lToS(L):
     return " ".join(str(v) for v in L)
@@ -94,7 +105,7 @@ rtt_interface_corba.SetServer(qreader._obj)
 print "CREATE CONTROLLER..."
 #####
 # add orcisir_ISIRController
-oIT = ddeployer.load("oIT", "Orocos_ISIRController", module="orcisir_Orocos_IsirController-gnulinux", prefix="", libdir="/home/shak/compil/samaxe-64/lib/orocos/gnulinux/orcisir_IsirController/")
+oIT = ddeployer.load("oIT", "Orocos_ISIRController", module="orcisir_Orocos_IsirController-gnulinux", prefix="", libdir=controllerlibdir)
 TT = dsimi.rtt.Task(oIT)
 
 phy.getPort(mechaName+"_q").connectTo(TT.getPort("q"))
