@@ -4,7 +4,28 @@ XDE must be called with some argument to configure corba:
 
 XDE python-script.py -ORBInitRef NameService=corbaloc:iiop:127.0.0.1:2809/NameService
 
+Twin robot demo:
+================
 
+In this demo, you interact with the master robot in gravity compensation mode through the spacemouse.
+The slave robot uses a PD controller to follow the master robot joint position.
+
+Run the master program:
+$XDE python/main_gravitycomp.py -ORBInitRef NameService=corbaloc:iiop:127.0.0.1:2809/NameService
+
+Then in a new terminal run the slave program:
+$XDE python/test_slave.py -ORBInitRef NameService=corbaloc:iiop:127.0.0.1:2809/NameService
+
+Keyboard and Orocos controller demo:
+====================================
+The robot uses the orcisir_Orocos_IsirController module with one cartesian position task.
+The target position can be moved by using the key 'q' 'a' 'w' 's' 'e' 'd'
+
+Run :
+$XDE python/main_master.py -ORBInitRef NameService=corbaloc:iiop:127.0.0.1:2809/NameService clibdir=/controller/lib/dir/
+
+In the xde shell, start the controller:
+>>TT.s.start()
 
 Troubleshooting:
 ================
