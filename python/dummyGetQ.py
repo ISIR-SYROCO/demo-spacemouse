@@ -6,8 +6,9 @@ import numpy as np
 dummygetq = None
 
 class DummyGetQ(dsimi.rtt.Task):
-	def __init__(self, name):
+	def __init__(self, name, time_step):
 		super(DummyGetQ, self).__init__(rtt_interface.PyTaskFactory.CreateTask(name))
+		self.s.setPeriod(time_step)
 
 		#Create the port to read robot state
 		self.q_port = self.addCreateInputPort("q", "VectorXd", True)
@@ -21,8 +22,8 @@ class DummyGetQ(dsimi.rtt.Task):
 	def updateHook(self):
 		pass
 
-def createDummyGetQ(name):
-	dummygetq = DummyGetQ(name)
+def createDummyGetQ(name, time_step):
+	dummygetq = DummyGetQ(name, time_step)
 	setProxy(dummygetq)
 	return dummygetq
 
