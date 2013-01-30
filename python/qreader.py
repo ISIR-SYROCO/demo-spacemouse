@@ -1,18 +1,23 @@
 import lgsm
 import rtt_interface
 import dsimi.rtt
-import numpy as np
+import physicshelper
 
 qreader = None
 
 class QReader(dsimi.rtt.Task):
-	def __init__(self, name, model):
+	def __init__(self, name, time_step):
 		super(QReader, self).__init__(rtt_interface.PyTaskFactory.CreateTask(name))
+
+		self.s.setPeriod(time_step)
 
 		#Create the port to read robot state
 		self.qout_port = self.addCreateOutputPort("q_out", "VectorXd")
 
-		self.model = model
+		self.model = None
+
+	def connectToRobot(self, phy, world, robot_name):
+		self.model = physicshelper.createDynamicModel(world, robot_name)
 
 	def startHook(self):
 		pass
@@ -25,8 +30,8 @@ class QReader(dsimi.rtt.Task):
 
 		self.qout_port.write(q)
 
-def createQReader(name, model):
-	qreader = QReader(name, model)
+def createQReader(name, time_step):
+	qreader = QReader(name, time_step)
 	setProxy(qreader)
 	return qreader
 
