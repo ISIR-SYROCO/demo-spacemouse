@@ -14,10 +14,10 @@ class QReader(dsimi.rtt.Task):
 		#Create the port to read robot state
 		self.qout_port = self.addCreateOutputPort("q_out", "VectorXd")
 
-		self.model = None
+		self.robot = None
 
-	def connectToRobot(self, phy, world, robot_name):
-		self.model = physicshelper.createDynamicModel(world, robot_name)
+	def connectToRobot(self, robot):
+		self.robot = robot
 
 	def startHook(self):
 		pass
@@ -26,7 +26,7 @@ class QReader(dsimi.rtt.Task):
 		pass
 
 	def updateHook(self):
-		q = self.model.getJointPositions()
+		q = self.robot.getJointPositions()
 
 		self.qout_port.write(q)
 
