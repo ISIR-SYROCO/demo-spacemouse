@@ -15,6 +15,8 @@ TIME_STEP = .01
 import xde_robot_loader as xrl
 clock, phy, graph = xwm.createAllAgents(TIME_STEP)
 
+import xde_resources as xr
+
 import sys
 import os
 import inspect
@@ -29,10 +31,10 @@ rtt_interface_corba.Init(sys.argv)
 mecha_name = "kuka2"
 
 #Damping 100 ?
-kukaWorld = xrl.createWorldFromUrdfFile("resources/urdf/kuka.xml", mecha_name, [0.5,0.2,0.4, 1, 0, 0, 0], True, 100, 0.005) #, "material.concrete")
+kukaWorld = xrl.createWorldFromUrdfFile(xr.kuka, mecha_name, [0.5,0.2,0.4, 1, 0, 0, 0], True, 100, 0.005) #, "material.concrete")
 xrl.addContactLaws(kukaWorld)
 
-groundWorld = xrl.createWorldFromUrdfFile("resources/urdf/ground.xml", "ground", [0,0,0.0, 1, 0, 0, 0], True, 0.1, 0.05) #, "material.concrete")
+groundWorld = xrl.createWorldFromUrdfFile(xr.ground, "ground", [0,0,0.0, 1, 0, 0, 0], True, 0.1, 0.05) #, "material.concrete")
 
 xwm.addWorld(groundWorld)
 xwm.addWorld(kukaWorld)

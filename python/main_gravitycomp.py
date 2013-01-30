@@ -17,6 +17,8 @@ clock, phy, graph = xwm.createAllAgents(TIME_STEP)
 
 import xde_spacemouse as spacemouse
 
+import xde_resources as xr
+
 import sys
 import os
 import inspect
@@ -29,14 +31,14 @@ rtt_interface_corba.Init(sys.argv)
 #Creating Scene
 
 mecha_name = "kuka1"
-kukaWorld = xrl.createWorldFromUrdfFile("resources/urdf/kuka.xml", mecha_name, [0.5,0.2,0.4, 1, 0, 0, 0], True, 1, 0.005) #, "material.concrete")
+kukaWorld = xrl.createWorldFromUrdfFile(xr.kuka, mecha_name, [0.5,0.2,0.4, 1, 0, 0, 0], True, 1, 0.005) #, "material.concrete")
 xrl.addContactLaws(kukaWorld)
 
-groundWorld = xrl.createWorldFromUrdfFile("resources/urdf/ground.xml", "ground", [0,0,0.0, 1, 0, 0, 0], True, 0.1, 0.05) #, "material.concrete")
+groundWorld = xrl.createWorldFromUrdfFile(xr.ground, "ground", [0,0,0.0, 1, 0, 0, 0], True, 0.1, 0.05) #, "material.concrete")
 
-env1World = xrl.createWorldFromUrdfFile("resources/urdf/env1.xml", "env1", [0,0.2,0.1, 1, 0, 0, 0], True, 0.1, 0.05)
+env1World = xrl.createWorldFromUrdfFile(xr.env1, "env1", [0,0.2,0.1, 1, 0, 0, 0], True, 0.1, 0.05)
 
-sphereWorld = xrl.createWorldFromUrdfFile("resources/urdf/sphere.xml", "sphere", [0,0.6,1.2, 1, 0, 0, 0], False, 0.2, 0.005)# , "material.concrete")
+sphereWorld = xrl.createWorldFromUrdfFile(xr.sphere, "sphere", [0,0.6,1.2, 1, 0, 0, 0], False, 0.2, 0.005)# , "material.concrete")
 
 xwm.addWorld(groundWorld)
 xwm.addWorld(kukaWorld)
