@@ -9,7 +9,6 @@ import xde_world_manager as xwm
 
 import dsimi.interactive
 shell = dsimi.interactive.shell()
-import deploy.deployer as ddeployer
 
 TIME_STEP = .01
 
@@ -26,14 +25,6 @@ sys.path.append(cpath)
 
 import rtt_interface_corba
 rtt_interface_corba.Init(sys.argv)
-
-import numpy
-numpy.set_printoptions(precision=6, suppress=True)
-from numpy import array, zeros, ones, pi
-
-#Utility
-def lToS(L):
-    return " ".join(str(v) for v in L)
 
 #Creating Scene
 
