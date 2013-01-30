@@ -59,7 +59,7 @@ sm = spacemouse.createTask("smi", TIME_STEP, phy, graph, "spheresphere", pdc_ena
 
 import qreader
 qreader = qreader.createQReader("kukaqreader", TIME_STEP)
-qreader.connectToRobot(phy, kukaWorld, mecha_name)
+qreader.connectToRobot(kuka)
 rtt_interface_corba.SetServer(qreader._obj)
 
 sm.s.start()
