@@ -2,11 +2,12 @@ import lgsm
 import rtt_interface
 import dsimi.rtt
 import numpy as np
+import physicshelper
 
 controller = None
 
 class SimpleController(dsimi.rtt.Task):
-	def __init__(self, name, time_step, model):
+	def __init__(self, name, time_step):
 		super(SimpleController, self).__init__(rtt_interface.PyTaskFactory.CreateTask(name))
 
 		# Create ports to read the state of the robot from the physical scene
@@ -17,18 +18,33 @@ class SimpleController(dsimi.rtt.Task):
 		self.tau_port = self.addCreateOutputPort("tau", "VectorXd")
 
 		# Ref to the dynamic model
-		self.model = model
-		self.kp = 100
-		self.kd = 20
-
-		# Flag for position control/gravity compensation
-		self.enable_pos_control = False
-		self.enable_gravity_comp = True
-
-		# Target position of the end effector
-		self.target_pos = np.matrix([ [0.5], [0.3], [0.3] ])
+		self.model = None
 
 		self.s.setPeriod(time_step)
+
+	def connectToRobot(self, phy, world, robot_name):
+		self.model = physicshelper.createDynamicModel(world, robot_name)
+		#create connectors to get robot k1g state 'k1g_q', 'k1g_qdot', 'k1g_Hroot', 'k1g_Troot', 'k1g_H'
+		phy.s.Connectors.OConnectorRobotState.new("ocpos"+robot_name, robot_name+"_", robot_name)
+		phy.s.Connectors.IConnectorRobotJointTorque.new("ict"+robot_name, robot_name+"_", robot_name)
+
+		phy.getPort(robot_name+"_q").connectTo(self.getPort("q"))
+		phy.getPort(robot_name+"_qdot").connectTo(self.getPort("qdot"))
+		phy.getPort(robot_name+"_Troot").connectTo(self.getPort("t"))
+		phy.getPort(robot_name+"_Hroot").connectTo(self.getPort("d"))
+		self.getPort("tau").connectTo(phy.getPort(robot_name+"_tau"))
+
+	def disconnectRobot(self, phy, robot_name):
+
+		robot = phy.s.GVM.Robot(robot_name)
+		ndof = robot.getJointSpaceDim()
+		tau = lgsm.vector([0] * ndof)
+		self.tau_port.write(tau)
+
+		robot.setJointVelocities(np.array([0.0]*ndof).reshape(ndof,1))
+
+		phy.s.Connectors.delete("ict"+robot_name)
+		phy.s.Connectors.delete("ocpos"+robot_name)
 
 	def startHook(self):
 		pass
@@ -36,10 +52,10 @@ class SimpleController(dsimi.rtt.Task):
 	def stopHook(self):
 		pass
 
-	def enablePositionControl(self, enable):
-		self.enable_pos_control = enable
-
 	def updateHook(self):
+		if self.model is None:
+			return
+
 		q,qok = self.q_port.read()
 		qdot, qdotok = self.qdot_port.read()
 		d, dok = self.d_port.read()
@@ -56,36 +72,18 @@ class SimpleController(dsimi.rtt.Task):
 			model.setJointPositions(q)
 			model.setJointVelocities(qdot)
 
-			N = model.nbDofs()
-			Na = model.nbInternalDofs() # actuated dof
-
 			# Control
-			H7 = model.getSegmentPosition(model.getSegmentIndex("07"))
-			H = lgsm.Displacement(lgsm.vector(0,0,0), H7.getRotation() )
-			J77 = model.getSegmentJacobian(model.getSegmentIndex("07"))
-			J70 = H.adjoint() * J77
-			T70 = H.adjoint() * model.getSegmentVelocity(model.getSegmentIndex("07"))
-
-			xd = self.target_pos # desired position of the last segment
-			x = H7.getTranslation()
-			v = T70.getLinearVelocity()
-			fc = self.kp * (xd -x) - self.kd * v
-
-			if self.enable_gravity_comp:
-				tau += model.getGravityTerms()
-
-			if self.enable_pos_control:
-				tau = tau + J70.transpose() * fc
+			tau = model.getGravityTerms()
 
 			self.tau_port.write(tau)
 
-def createController(name, time_step, model):
-	#task = rtt_interface.PyTaskFactory.CreateTask("kukacontroller")
-	controller = SimpleController(name, time_step, model)
+def createTask(name, time_step):
+	controller = SimpleController(name, time_step)
 	setProxy(controller)
 	return controller
 
 def setProxy(_controller):
 	global controller
 	controller=_controller
+
 
