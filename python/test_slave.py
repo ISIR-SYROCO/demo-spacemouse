@@ -13,7 +13,8 @@ shell = dsimi.interactive.shell()
 TIME_STEP = .01
 
 import xde_robot_loader as xrl
-clock, phy, graph = xwm.createAllAgents(TIME_STEP)
+wm = xwm.WorldManager()
+wm.createAllAgents(TIME_STEP)
 
 import xde_resources as xr
 
@@ -36,14 +37,14 @@ xrl.addContactLaws(kukaWorld)
 
 groundWorld = xrl.createWorldFromUrdfFile(xr.ground, "ground", [0,0,0.0, 1, 0, 0, 0], True, 0.1, 0.05) #, "material.concrete")
 
-xwm.addWorld(groundWorld)
-xwm.addWorld(kukaWorld)
+wm.addWorld(groundWorld)
+wm.addWorld(kukaWorld)
 
 #Joint position controller
 import controlQ
 
 controllerq = controlQ.createControllerQ("kukacontrollerq", TIME_STEP)
-controllerq.connectToRobot(phy, kukaWorld, mecha_name)
+controllerq.connectToRobot(wm.phy, kukaWorld, mecha_name)
 
 #import dummyGetQ
 #dumm = dummyGetQ.createDummyGetQ("dummyget", TIME_STEP)
@@ -58,6 +59,6 @@ taskQRead.getPort("q_out").connectTo( controllerq.getPort("qdes") )
 #dumm.s.start()
 controllerq.s.start()
 
-phy.s.startSimulation()
+wm.startSimulation()
 
 shell()

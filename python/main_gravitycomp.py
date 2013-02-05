@@ -13,7 +13,8 @@ shell = dsimi.interactive.shell()
 TIME_STEP = .01
 
 import xde_robot_loader as xrl
-clock, phy, graph = xwm.createAllAgents(TIME_STEP)
+wm = xwm.WorldManager()
+wm.createAllAgents(TIME_STEP)
 
 import xde_spacemouse as spacemouse
 
@@ -40,24 +41,24 @@ env1World = xrl.createWorldFromUrdfFile(xr.env1, "env1", [0,0.2,0.1, 1, 0, 0, 0]
 
 sphereWorld = xrl.createWorldFromUrdfFile(xr.sphere, "sphere", [0,0.6,1.2, 1, 0, 0, 0], False, 0.2, 0.005)# , "material.concrete")
 
-xwm.addWorld(groundWorld)
-xwm.addWorld(kukaWorld)
-xwm.addWorld(env1World)
-xwm.addMarkers(sphereWorld, ["spheresphere"], thin_markers=False)
-xwm.addWorld(sphereWorld, True)
+wm.addWorld(groundWorld)
+wm.addWorld(kukaWorld)
+wm.addWorld(env1World)
+wm.addMarkers(sphereWorld, ["sphere.sphere"], thin_markers=False)
+wm.addWorld(sphereWorld, True)
 
-kuka = phy.s.GVM.Robot(mecha_name)
-kuka.enableContactWithBody("groundground", True)
-kuka.enableContactWithBody("env1env1", True)
+kuka = wm.phy.s.GVM.Robot(mecha_name)
+kuka.enableContactWithBody("ground.ground", True)
+kuka.enableContactWithBody("env1.env1", True)
 
 # Create simple gravity compensator controller
 import control
 controller = control.createTask("controlKuka1", TIME_STEP)
-controller.connectToRobot(phy, kukaWorld, mecha_name)
+controller.connectToRobot(wm.phy, kukaWorld, mecha_name)
 
 #spacemouse
 #PDC Control mode
-sm = spacemouse.createTask("smi", TIME_STEP, phy, graph, "spheresphere", pdc_enabled=True, body_name="07"+mecha_name)
+sm = spacemouse.createTask("smi", TIME_STEP, wm.phy, wm.graph, "sphere.sphere", pdc_enabled=True, body_name=mecha_name+".07")
 
 import qreader
 qreader = qreader.createQReader("kukaqreader", TIME_STEP)
@@ -67,6 +68,6 @@ rtt_interface_corba.SetServer(qreader._obj)
 sm.s.start()
 qreader.s.start()
 controller.s.start()
-phy.s.startSimulation()
+wm.startSimulation()
 
 shell()
