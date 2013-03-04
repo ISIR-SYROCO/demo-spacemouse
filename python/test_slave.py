@@ -59,6 +59,6 @@ taskQRead.getPort("q_out").connectTo( controllerq.getPort("qdes") )
 #dumm.s.start()
 controllerq.s.start()
 
-wm.startSimulation()
+wm.startAgents()
 
 shell()
