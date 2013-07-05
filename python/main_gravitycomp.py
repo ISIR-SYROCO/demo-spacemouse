@@ -33,7 +33,19 @@ rtt_interface_corba.Init(sys.argv)
 
 mecha_name = "kuka1"
 kukaWorld = xrl.createWorldFromUrdfFile(xr.kuka, mecha_name, [0.5,0.2,0.4, 1, 0, 0, 0], True, 1, 0.005) #, "material.concrete")
-xrl.addContactLaws(kukaWorld)
+
+#Adding contact laws
+cl = kukaWorld.scene.physical_scene.contact_laws.add()
+cl.material_i = "material.metal"
+cl.material_j = "material.concrete"
+cl.law = cl.COULOMB
+cl.friction = 0.5
+
+cl = kukaWorld.scene.physical_scene.contact_laws.add()
+cl.material_i = "material.metal"
+cl.material_j = "material.metal"
+cl.law = cl.COULOMB
+cl.friction = 0.5
 
 groundWorld = xrl.createWorldFromUrdfFile(xr.ground, "ground", [0,0,0.0, 1, 0, 0, 0], True, 0.1, 0.05) #, "material.concrete")
 
